@@ -17,7 +17,7 @@ echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 npm start
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Without `ANTHROPIC_API_KEY` the server stops at startup and says so.
 
 ## Deploy
 
