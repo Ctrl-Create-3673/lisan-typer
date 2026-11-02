@@ -1,19 +1,11 @@
 {
   "name": "lisan-typer",
   "version": "1.0.0",
-  "description": "Upload images of Lisan-ud-Dawat text; free Gemini AI (with in-browser OCR fallback) types it in the Kanz fonts with AL Fatemi keystrokes.",
+  "description": "Upload images of Lisan-ud-Dawat text; in-browser OCR types it in the Kanz fonts with AL Fatemi keystrokes.",
   "scripts": {
-    "start": "node --env-file-if-exists=.env server.js",
     "test": "node test.js"
   },
   "author": "",
   "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "@google/genai": "^2.32.0"
-  },
-  "main": "server.js",
-  "engines": {
-    "node": ">=22.9"
-  }
+  "type": "module"
 }

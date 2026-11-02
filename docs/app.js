@@ -117,51 +117,20 @@ async function readAll() {
     current = item;
     setStatus(item, 'Starting…', 'busy');
     try {
+      if (typeof Tesseract === 'undefined') throw new Error('The text reader did not load. Check your internet connection and reload.');
       const canvas = await prepareImage(item.file);
-      let done = 'Done – read by AI';
-      try {
-        setStatus(item, 'Reading with AI…', 'busy');
-        item.segments = await readWithAI(canvas);
-      } catch (err) {
-        // no AI server here (e.g. the GitHub Pages copy), free limit used up, or AI error
-        done = `Done – basic reader (${err.message.replace(/\.$/, '')}). Check the text below`;
-        item.segments = await readWithOCR(canvas);
-      }
-      setStatus(item, item.segments.length ? done : 'No text found');
-      if (item.segments.length) showResult(item);
+      const urd = await ocr(MAIN_LANG, canvas);
+      const eng = await ocr('eng', canvas);
+      const text = withEnglish(urd, eng).replace(/[‎‏‪-‮]/g, '').trim(); // drop invisible direction marks
+      item.segments = text ? [{ text, highlighted: false }] : [];
+      setStatus(item, text ? 'Done – check the text below' : 'No text found');
+      if (text) showResult(item);
     } catch (err) {
       setStatus(item, err?.message || 'Could not read this image', 'error');
     }
   }
   current = null;
   refreshCount();
-}
-
-async function readWithAI(canvas) {
-  const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.9));
-  const image = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-  const res = await fetch('api/transcribe', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image, mediaType: 'image/jpeg' }),
-  }).catch(() => { throw new Error('AI not reachable'); });
-  if (res.status === 404 || res.status === 405) throw new Error('AI is not available on this copy of the site');
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error || `AI error ${res.status}`);
-  return body.segments.filter((s) => s.text);
-}
-
-async function readWithOCR(canvas) {
-  if (typeof Tesseract === 'undefined') throw new Error('The text reader did not load. Check your internet connection and reload.');
-  const urd = await ocr(MAIN_LANG, canvas);
-  const eng = await ocr('eng', canvas);
-  const text = withEnglish(urd, eng).replace(/[‎‏‪-‮]/g, '').trim(); // drop invisible direction marks
-  return text ? [{ text, highlighted: false }] : [];
 }
 
 // Downscale big photos and flatten transparency so OCR is fast and sees dark text on white.
