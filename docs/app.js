@@ -1,7 +1,10 @@
 import { toKeyboardText, toUnicodeDisplay, toKeystrokes } from './keymap.js';
 
-const MAX_SIDE = 2400; // px; plenty for text, keeps uploads small
-const MAX_BYTES = 4.5 * 1024 * 1024; // under Claude's 5 MB image limit
+/* global Tesseract */
+const MAX_SIDE = 2400; // px; plenty for text, keeps OCR fast
+// Urdu covers ٹ ڑ ے ں ھ, Arabic the rest. Adding 'eng' fixes English words but turns
+// many Lisan-ud-Dawat words into Latin junk, so English words are left for the edit box.
+const OCR_LANGS = 'urd+ara';
 
 const $ = (id) => document.getElementById(id);
 const drop = $('drop'), fileInput = $('file'), go = $('go'), count = $('count'), results = $('results');
@@ -61,30 +64,40 @@ function setStatus(item, text, kind = '') {
   el.append(text);
 }
 
+// One OCR worker for the whole visit; the first use downloads the language data (~25 MB, then cached).
+let worker, current;
+function getWorker() {
+  worker ??= Tesseract.createWorker(OCR_LANGS, 1, {
+    logger: (m) => {
+      if (!current || typeof m.progress !== 'number') return;
+      const what = m.status.startsWith('recognizing') ? 'Reading' : 'Loading reader';
+      setStatus(current, `${what}… ${Math.round(m.progress * 100)}%`, 'busy');
+    },
+  }).catch((err) => { worker = null; throw err; });
+  return worker;
+}
+
 async function readAll() {
   go.disabled = true;
   for (const item of items.filter((i) => !i.segments)) {
-    setStatus(item, 'Reading…', 'busy');
+    current = item;
+    setStatus(item, 'Starting…', 'busy');
     try {
-      const { data, mediaType } = await prepareImage(item.file);
-      const res = await fetch('api/transcribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: data, mediaType }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || `Server error ${res.status}`);
-      item.segments = body.segments;
-      setStatus(item, item.segments.length ? 'Done' : 'No Lisan-ud-Dawat text found');
-      showResult(item);
+      if (typeof Tesseract === 'undefined') throw new Error('The text reader did not load. Check your internet connection and reload.');
+      const { data } = await (await getWorker()).recognize(await prepareImage(item.file));
+      const text = data.text.replace(/[‎‏‪-‮]/g, '').trim(); // drop invisible direction marks
+      item.segments = text ? [{ text, highlighted: false }] : [];
+      setStatus(item, text ? 'Done – check the text below' : 'No text found');
+      if (text) showResult(item);
     } catch (err) {
-      setStatus(item, err.message || 'Failed', 'error');
+      setStatus(item, err?.message || 'Could not read this image', 'error');
     }
   }
+  current = null;
   refreshCount();
 }
 
-// Downscale big photos and re-encode as JPEG so the upload stays under the API limit.
+// Downscale big photos and flatten transparency so OCR is fast and sees dark text on white.
 async function prepareImage(file) {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
@@ -95,20 +108,7 @@ async function prepareImage(file) {
   ctx.fillStyle = '#fff'; // transparent PNGs would otherwise turn black
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  for (const quality of [0.92, 0.8, 0.65, 0.5]) {
-    const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', quality));
-    if (blob.size <= MAX_BYTES) return { data: await toBase64(blob), mediaType: 'image/jpeg' };
-  }
-  throw new Error('Image is too large even after shrinking');
-}
-
-function toBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
+  return canvas;
 }
 
 function showResult(item) {
@@ -126,7 +126,7 @@ function showResult(item) {
     <div class="rendered f-alkanz" lang="ar"></div>
     <details><summary>Keystrokes (AL Fatemi layout)</summary><pre class="keys" dir="ltr"></pre></details>
     <details><summary>Fix the text</summary><textarea class="edit" rows="5" lang="ar" aria-label="Edit the transcribed text"></textarea>
-      <span class="hint">Edits update the view and keystrokes. Colour highlights are dropped once you edit.</span></details>
+      <span class="hint">The reader often mistakes Lisan-ud-Dawat letters. Fix them here; the view and keystrokes update as you type.</span></details>
     <div class="row">
       <button data-copy="keyboard">Copy text for Al-Kanz</button>
       <button data-copy="unicode">Copy standard Unicode</button>

@@ -1,6 +1,6 @@
 // Self-test: npm test
 import assert from 'node:assert/strict';
-import { toKeyboardText, toKeystrokes, fromKeystrokes } from './public/keymap.js';
+import { toKeyboardText, toKeystrokes, fromKeystrokes } from './docs/keymap.js';
 
 // Passage checked by eye against the Al-Kanz rendering of the reference image.
 const unicode = 'دل ني دھڑكن نا سبب جسم نا اعضاء سلامة رہے چھے، تو پڑھاؤنار واسطے دل نا محل ما كون چھے، دل گھني محنة كري نے سگلا اعضاء نے خون پہنچاوے چھے، يہ} مثل ايك جوئيے كہ ميں كئي نتھي ْايو، بلكہ پڑھوا نے } ْايو چھوں';

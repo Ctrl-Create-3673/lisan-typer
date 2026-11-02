@@ -75,7 +75,7 @@ pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/
 <main>
   <header>
     <h1>Lisan Typer</h1>
-    <p>Upload pictures of Lisan-ud-Dawat text. AI reads them and types the text in the Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu fonts, with the keys to press on the AL Fatemi keyboard.</p>
+    <p>Upload pictures of Lisan-ud-Dawat text. Your browser reads them (nothing is uploaded) and types the text in the Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu fonts, with the keys to press on the AL Fatemi keyboard. The first reading downloads the reader, so it takes a little longer.</p>
   </header>
 
   <div class="drop" id="drop" role="button" tabindex="0" aria-label="Add images">
@@ -93,6 +93,7 @@ pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/
 
   <p class="legend">Keystrokes: type them on an English keyboard with the AL Fatemi layout switched on. A capital letter or symbol means hold <b>Shift</b>. Doubled keys such as <code>ee</code> (پ), <code>pp</code> (چ) and <code>ss</code> (ے) are pressed twice; <code>[EN:word]</code> means switch to English for that word.</p>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
