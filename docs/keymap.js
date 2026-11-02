@@ -31,7 +31,8 @@ const LIGATURES = { 'لا': 'b', 'لأ': 'G', 'لإ': 'T', 'لآ': 'B' }; // one
 
 // Standard Unicode Lisan-ud-Dawat → the exact characters the keyboard produces.
 export function toKeyboardText(text) {
-  return [...text].map((c) => TO_KEYBOARD[c] ?? c).join('');
+  // چھے has its own key: Shift+P types ؛, which Al-Kanz draws as چھے
+  return [...text.replace(/چ[هھ]ے/g, '؛')].map((c) => TO_KEYBOARD[c] ?? c).join('');
 }
 
 // For Kanz-al-Yaqoot / Kanz-al-Lulu, which have the real letters but draw a

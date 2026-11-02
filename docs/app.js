@@ -7,7 +7,7 @@ const MAX_SIDE = 2400; // px; plenty for text, keeps OCR fast
 // Kanz-al-Lulu (docs/tessdata/lsd.traineddata.gz). Bump the version when the file changes, so
 // browsers that cached the old model fetch the new one.
 const MAIN_LANG = 'lsd';
-const MODEL_OPTIONS = { lsd: { langPath: new URL('tessdata', location.href).href, cachePath: 'lsd-v1' } };
+const MODEL_OPTIONS = { lsd: { langPath: new URL('tessdata', location.href).href, cachePath: 'lsd-v2' } };
 
 const $ = (id) => document.getElementById(id);
 const drop = $('drop'), fileInput = $('file'), go = $('go'), count = $('count'), results = $('results');
