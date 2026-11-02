@@ -4,7 +4,9 @@
 
 Upload pictures of Lisan-ud-Dawat text. The page reads them with OCR inside your browser and shows the text in the **Al-Kanz**, **Kanz-al-Yaqoot** and **Kanz-al-Lulu** fonts, together with the keys to press on the **AL Fatemi** Arabic keyboard layout.
 
-No API key, no server and no uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) with its Urdu and Arabic models. The first reading downloads the models (about 25 MB, then cached by the browser).
+No API key, no server and no image uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) in the browser. The Urdu model reads the Lisan-ud-Dawat text, and a second English pass puts back English words, which the Urdu model turns into digits. The first reading downloads the models (about 20 MB, then cached by the browser).
+
+Signed-in users (Google account) can **save** texts and reopen or delete them later under **My saved texts**.
 
 - **Al-Kanz view:** the exact characters the AL Fatemi keyboard types. Al-Kanz draws doubled letters as Lisan-ud-Dawat letters (`ضض` → ٹ, `ثث` → پ, `حح` → چ, `سس` → ے, `كك` → گ, `طط` → ں), and `ر` + `ٌ` as ڑ.
 - **Yaqoot / Lulu views:** the same text in standard Unicode (ٹ ڑ پ چ ے ں ھ).
@@ -25,18 +27,47 @@ Opening `docs/index.html` straight from disk does not work, because browsers blo
 
 GitHub Pages serves the `docs/` folder of the `main` branch (Settings → Pages). Pushing to `main` updates the site.
 
+## Google sign-in (Firebase, free)
+
+Sign-in and saving stay hidden until `docs/firebase-config.js` has a config.
+
+1. Go to https://console.firebase.google.com, **Create a project** (Google Analytics not needed).
+2. **Build → Authentication → Get started → Sign-in method → Google → Enable**, pick a support email, **Save**.
+3. **Authentication → Settings → Authorized domains → Add domain**: `ctrl-create-3673.github.io`.
+4. **Build → Firestore Database → Create database** (any location, production mode). Open **Rules**, replace them with the rules below, **Publish**.
+5. **Project settings (gear) → Your apps → Web (`</>`)**, register an app (no hosting), and copy the `firebaseConfig` object into `docs/firebase-config.js`.
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/texts/{doc} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['title', 'text', 'updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() <= 200
+        && request.resource.data.text is string && request.resource.data.text.size() <= 100000;
+    }
+  }
+}
+```
+
+The config values are public by design; these rules are what keep every user's texts private to them.
+
 ## Files
 
 | File | What it does |
 |---|---|
 | `docs/index.html` | The page |
-| `docs/app.js` | Upload, OCR, results, copy buttons |
+| `docs/app.js` | Upload, OCR (Urdu + English pass), results, copy and save buttons, saved list |
+| `docs/cloud.js` | Google sign-in and saved texts (Firebase Auth + Firestore) |
+| `docs/firebase-config.js` | Your Firebase web app config (`null` = sign-in off) |
 | `docs/keymap.js` | AL Fatemi key map and the Unicode → keyboard text → keystrokes conversion |
 | `test.js` | `npm test`: checks the key map against a passage verified in Al-Kanz |
 
 ## Known limits
 
-- OCR is far less accurate than reading by eye: expect to fix several words per paragraph, and English words.
+- OCR is far less accurate than reading by eye: on the test passage about 6 words in 10 come out exactly right, so expect to fix several words per paragraph. Coloured text is read but its colour is not kept.
 - The keyboard PDF shows ر on the C key; this app types ؤ with C, as on the standard Arabic layout, because nothing else on the layout types ؤ.
 - ﴿ ﴾ are not on the layout; insert them as symbols.
 - In Al-Kanz, ں straight after و (as in چھوں) shows a small extra mark, and ڈ shows a plain mark instead of a small ط.

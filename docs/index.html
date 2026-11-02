@@ -27,6 +27,14 @@
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
 main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
 header h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+header .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+#account { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#saved { margin-top: 40px; }
+#saved h2 { font-size: 18px; margin: 0 0 8px; }
+#saved-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+#saved-list li { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+#saved-list li:first-child { border-top: 0; }
+#saved-list .name { flex: 1; min-width: 140px; font-weight: 600; overflow-wrap: anywhere; }
 header p { margin: 6px 0 0; color: var(--muted); max-width: 640px; }
 
 .drop { margin-top: 24px; border: 2px dashed var(--line); border-radius: 14px; background: var(--surface); padding: 32px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
@@ -74,7 +82,7 @@ pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/
 <body>
 <main>
   <header>
-    <h1>Lisan Typer</h1>
+    <div class="top"><h1>Lisan Typer</h1><div id="account"></div></div>
     <p>Upload pictures of Lisan-ud-Dawat text. Your browser reads them (nothing is uploaded) and types the text in the Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu fonts, with the keys to press on the AL Fatemi keyboard. The first reading downloads the reader, so it takes a little longer.</p>
   </header>
 
@@ -90,6 +98,11 @@ pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/
   </div>
 
   <div id="results" aria-live="polite"></div>
+
+  <section id="saved" hidden>
+    <h2>My saved texts</h2>
+    <ul id="saved-list"></ul>
+  </section>
 
   <p class="legend">Keystrokes: type them on an English keyboard with the AL Fatemi layout switched on. A capital letter or symbol means hold <b>Shift</b>. Doubled keys such as <code>ee</code> (پ), <code>pp</code> (چ) and <code>ss</code> (ے) are pressed twice; <code>[EN:word]</code> means switch to English for that word.</p>
 </main>
