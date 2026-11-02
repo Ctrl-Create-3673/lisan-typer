@@ -179,19 +179,35 @@ function showResult(item) {
   const render = () => {
     const alkanz = font.value === 'alkanz';
     rendered.className = `rendered f-${font.value}`;
-    rendered.replaceChildren(...item.segments.map((s) => {
-      const span = document.createElement('span');
-      if (s.highlighted) span.className = 'hl';
-      // English words get a Latin font, like the reference
-      for (const part of (alkanz ? toKeyboardText(s.text) : toUnicodeDisplay(s.text)).split(/([A-Za-z][A-Za-z'’-]*)/)) {
-        if (!part) continue;
-        if (/^[A-Za-z]/.test(part)) { const en = document.createElement('span'); en.className = 'en'; en.textContent = part; span.append(en); }
-        else span.append(part);
-      }
-      return span;
-    }));
+    // one block per line of the image, so the layout matches the original
+    const lines = [document.createElement('div')];
+    for (const s of item.segments) {
+      (alkanz ? toKeyboardText(s.text) : toUnicodeDisplay(s.text)).split('\n').forEach((piece, i) => {
+        if (i > 0) lines.push(document.createElement('div'));
+        const span = document.createElement('span');
+        if (s.highlighted) span.className = 'hl';
+        // English words get a Latin font, like the reference
+        for (const part of piece.split(/([A-Za-z][A-Za-z'’-]*)/)) {
+          if (!part) continue;
+          if (/^[A-Za-z]/.test(part)) { const en = document.createElement('span'); en.className = 'en'; en.textContent = part; span.append(en); }
+          else span.append(part);
+        }
+        lines.at(-1).append(span);
+      });
+    }
+    for (const line of lines) line.className = 'line';
+    lines.at(-1).classList.add('last');
+    rendered.replaceChildren(...lines);
+    fitLines(rendered);
     keysEl.textContent = toKeystrokes(toKeyboardText(plain()));
   };
+  let lastWidth = 0; // refit on width changes only; fitting changes the height
+  new ResizeObserver(([entry]) => {
+    if (Math.abs(entry.contentRect.width - lastWidth) < 1) return;
+    lastWidth = entry.contentRect.width;
+    fitLines(rendered);
+  }).observe(rendered);
+  document.fonts.ready.then(() => fitLines(rendered));
   font.addEventListener('change', render);
   edit.addEventListener('input', () => { item.segments = [{ text: edit.value, highlighted: false }]; render(); });
 
@@ -223,6 +239,21 @@ function showResult(item) {
     }
   });
   render();
+}
+
+// Shrink the text until the longest line fits, so each image line stays one line.
+// Below MIN_FONT (phones) let lines wrap instead of becoming unreadable.
+const MIN_FONT = 16;
+function fitLines(box) {
+  box.classList.remove('wrap');
+  box.style.fontSize = '';
+  const base = parseFloat(getComputedStyle(box).fontSize);
+  const lines = [...box.children];
+  const ratio = Math.max(1, ...lines.map((l) => l.scrollWidth / (l.clientWidth || 1)));
+  if (ratio === 1) return;
+  const size = Math.floor((base / ratio) * 0.98);
+  if (size < MIN_FONT) box.classList.add('wrap');
+  else box.style.fontSize = `${size}px`;
 }
 
 function flash(button, text) {

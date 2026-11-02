@@ -60,7 +60,10 @@ button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3p
 .remove { padding: 4px 10px; }
 select { font: inherit; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 10px; }
 
-.rendered { direction: rtl; text-align: justify; font-size: clamp(22px, 4.2vw, 32px); line-height: 2.1; padding: 16px 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rendered { direction: rtl; font-size: clamp(22px, 4.2vw, 32px); line-height: 2.1; padding: 16px 20px; }
+.rendered .line { white-space: nowrap; text-align: justify; text-align-last: justify; min-height: 1em; }
+.rendered .line.last { text-align-last: start; }
+.rendered.wrap .line { white-space: normal; overflow-wrap: anywhere; text-align-last: start; }
 .rendered .en { font-family: system-ui, sans-serif; font-size: .8em; }
 .rendered .hl { color: var(--highlight); }
 .f-alkanz { font-family: 'Al-Kanz', serif; }
