@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lisan Typer</title>
+<meta name="description" content="Upload a picture of Lisan-ud-Dawat text and get it typed in the Kanz fonts, with the AL Fatemi keystrokes.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23b0211b'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='serif'>ل</text></svg>">
+<style>
+@font-face { font-family: 'Al-Kanz'; src: url('fonts/Al-Kanz.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Kanz-al-Yaqoot'; src: url('fonts/Kanz-al-Yaqoot.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Kanz-al-Lulu'; src: url('fonts/Kanz-al-Lulu.ttf') format('truetype'); font-display: swap; }
+
+:root {
+  --bg: #f7f5f2; --surface: #ffffff; --fg: #1d1b19; --muted: #6d6862; --line: #e3ded8;
+  --accent: #b0211b; --accent-fg: #ffffff; --accent-soft: #f6e4e2; --highlight: #b0211b; --error: #a1261f;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151413; --surface: #1f1d1b; --fg: #f1ede8; --muted: #a29b93; --line: #34302c;
+    --accent: #e0574e; --accent-fg: #1a0705; --accent-soft: #3a201d; --highlight: #ff7a70; --error: #ff8a80;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+header h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 640px; }
+
+.drop { margin-top: 24px; border: 2px dashed var(--line); border-radius: 14px; background: var(--surface); padding: 32px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.drop strong { display: block; font-size: 17px; }
+.drop span { color: var(--muted); font-size: 14px; }
+
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+button { font: inherit; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; padding: 10px 18px; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hint { color: var(--muted); font-size: 14px; }
+
+.card { margin-top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.card-head { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.card-head img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.card-head .name { flex: 1; min-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.status { font-size: 14px; color: var(--muted); }
+.status.error { color: var(--error); }
+.remove { padding: 4px 10px; }
+select { font: inherit; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 10px; }
+
+.rendered { direction: rtl; text-align: justify; font-size: clamp(22px, 4.2vw, 32px); line-height: 2.1; padding: 16px 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rendered .en { font-family: system-ui, sans-serif; font-size: .8em; }
+.rendered .hl { color: var(--highlight); }
+.f-alkanz { font-family: 'Al-Kanz', serif; }
+.f-yaqoot { font-family: 'Kanz-al-Yaqoot', serif; }
+.f-lulu { font-family: 'Kanz-al-Lulu', serif; }
+
+details { border-top: 1px solid var(--line); padding: 10px 16px; }
+summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+textarea { width: 100%; margin-top: 8px; font: 18px/1.8 'Kanz-al-Yaqoot', serif; direction: rtl; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--fg); padding: 10px; resize: vertical; }
+pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/1.6 ui-monospace, Menlo, Consolas, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--line); }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; display: inline-block; vertical-align: -3px; margin-inline-end: 6px; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.legend { margin-top: 32px; color: var(--muted); font-size: 14px; }
+.legend code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lisan Typer</h1>
+    <p>Upload pictures of Lisan-ud-Dawat text. AI reads them and types the text in the Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu fonts, with the keys to press on the AL Fatemi keyboard.</p>
+  </header>
+
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="Add images">
+    <strong>Drop images here, paste, or click to choose</strong>
+    <span>JPEG, PNG, WebP or GIF · several at once is fine</span>
+  </div>
+  <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+
+  <div class="actions">
+    <button class="primary" id="go" disabled>Read the text</button>
+    <span class="hint" id="count">No images yet</span>
+  </div>
+
+  <div id="results" aria-live="polite"></div>
+
+  <p class="legend">Keystrokes: type them on an English keyboard with the AL Fatemi layout switched on. A capital letter or symbol means hold <b>Shift</b>. Doubled keys such as <code>ee</code> (پ), <code>pp</code> (چ) and <code>ss</code> (ے) are pressed twice; <code>[EN:word]</code> means switch to English for that word.</p>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
