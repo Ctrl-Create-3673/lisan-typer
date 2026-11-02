@@ -2,7 +2,7 @@
 
 Upload pictures of Lisan-ud-Dawat text. AI reads them and the page shows the text in the **Al-Kanz**, **Kanz-al-Yaqoot** and **Kanz-al-Lulu** fonts, line for line as in the image, together with the keys to press on the **AL Fatemi** Arabic keyboard layout.
 
-Reading uses Google Gemini (`gemini-3.8-flash`) on its **free tier**: no card, no cost, but a daily request limit, and Google may use free-tier images to improve its products. When the AI is unavailable (no server, limit used up, error) the page falls back to free OCR in the browser ([Tesseract.js](https://github.com/naptha/tesseract.js), Urdu model plus an English pass), which is much less accurate.
+Reading uses Google Gemini (`gemini-3.6-flash`) on its **free tier**: no card, no cost, but a daily request limit, and Google may use free-tier images to improve its products. When the AI is unavailable (no server, limit used up, error) the page falls back to free OCR in the browser ([Tesseract.js](https://github.com/naptha/tesseract.js), Urdu model plus an English pass), which is much less accurate.
 
 Signed-in users (Google account) can **save** texts and reopen or delete them later under **My saved texts**.
 
@@ -40,7 +40,7 @@ Open http://localhost:3000. Without `GEMINI_API_KEY` the server stops at startup
 | Variable | Default | Meaning |
 |---|---|---|
 | `GEMINI_API_KEY` | (required) | Free key from Google AI Studio |
-| `GEMINI_MODEL` | `gemini-3.8-flash` | Gemini model to use |
+| `GEMINI_MODEL` | `gemini-3.6-flash` | Gemini model to use |
 | `RATE_LIMIT_PER_HOUR` | `30` | Images each visitor IP may send per hour, so one person can't use up the daily free limit |
 
 The GitHub Pages copy (https://ctrl-create-3673.github.io/lisan-typer/) has no server, so it always uses the free OCR reader.

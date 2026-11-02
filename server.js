@@ -7,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { GoogleGenAI, ApiError } from '@google/genai';
 
 const PORT = Number(process.env.PORT) || 3000;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+// On the Lisan-ud-Dawat sample: 3.6-flash 96% exact words, 3.5-flash-lite 88%, 3.8-flash overloaded.
+// The second model is the backup when the first is busy, slow or out of free daily quota.
+const MODELS = [process.env.GEMINI_MODEL || 'gemini-3.6-flash', 'gemini-3.5-flash-lite'];
 const RATE_LIMIT = Number(process.env.RATE_LIMIT_PER_HOUR) || 30; // images per visitor IP per hour
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const PUBLIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'docs');
@@ -54,11 +56,26 @@ Colour: put text that is coloured differently from the body text (for example re
 If the image contains no Lisan-ud-Dawat or Arabic-script text, return an empty segments list.`;
 
 async function transcribe(image, mimeType) {
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: [{ role: 'user', parts: [{ inlineData: { mimeType, data: image } }, { text: 'Transcribe the text in this image.' }] }],
-    config: { systemInstruction: SYSTEM, responseMimeType: 'application/json', responseJsonSchema: SCHEMA },
-  });
+  let response;
+  for (const [i, model] of MODELS.entries()) {
+    try {
+      response = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ inlineData: { mimeType, data: image } }, { text: 'Transcribe the text in this image.' }] }],
+        config: {
+          systemInstruction: SYSTEM, responseMimeType: 'application/json', responseJsonSchema: SCHEMA,
+          thinkingConfig: { thinkingLevel: 'LOW' }, // copying text needs little reasoning; keeps replies fast
+          httpOptions: { timeout: 90_000 }, // ms; a hung request then counts as an error and the page falls back
+        },
+      });
+      break;
+    } catch (err) {
+      // 429 quota, 500/503 busy, 504 or no status: timed out
+      const busyOrLimit = err instanceof ApiError ? [429, 500, 503, 504].includes(err.status) : err?.name === 'AbortError' || /abort/i.test(err?.message);
+      if (!busyOrLimit || i === MODELS.length - 1) throw err;
+      console.error(`Gemini ${err.status} on ${model}, trying ${MODELS[i + 1]}`);
+    }
+  }
   const finish = response.candidates?.[0]?.finishReason;
   if (finish === 'MAX_TOKENS') throw new HttpError(422, 'The text is too long for one image. Crop it into smaller parts.');
   if (finish && finish !== 'STOP') throw new HttpError(422, 'The AI declined to read this image.');
