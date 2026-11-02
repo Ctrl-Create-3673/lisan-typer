@@ -3,9 +3,11 @@ import * as cloud from './cloud.js';
 
 /* global Tesseract */
 const MAX_SIDE = 2400; // px; plenty for text, keeps OCR fast
-// Tested on a Lisan-ud-Dawat sample: Urdu alone at original size read the most words
-// (Urdu+Arabic, upscaling and black/white thresholding all did worse).
-const MAIN_LANG = 'urd';
+// Our own model: Tesseract's Urdu model fine-tuned on lines rendered in Al-Kanz, Kanz-al-Yaqoot and
+// Kanz-al-Lulu (docs/tessdata/lsd.traineddata.gz). Bump the version when the file changes, so
+// browsers that cached the old model fetch the new one.
+const MAIN_LANG = 'lsd';
+const MODEL_OPTIONS = { lsd: { langPath: new URL('tessdata', location.href).href, cachePath: 'lsd-v1' } };
 
 const $ = (id) => document.getElementById(id);
 const drop = $('drop'), fileInput = $('file'), go = $('go'), count = $('count'), results = $('results');
@@ -76,11 +78,16 @@ const workers = {};
 let current;
 function getWorker(lang) {
   workers[lang] ??= Tesseract.createWorker(lang, 1, {
+    ...MODEL_OPTIONS[lang],
     logger: (m) => {
       if (!current || typeof m.progress !== 'number') return;
       const what = m.status.startsWith('recognizing') ? (lang === 'eng' ? 'Checking English words' : 'Reading') : 'Loading reader';
       setStatus(current, `${what}… ${Math.round(m.progress * 100)}%`, 'busy');
     },
+  }).then(async (worker) => {
+    // one uniform block of text: our model read 86% of the sample's words this way, 62% with automatic layout
+    if (lang === MAIN_LANG) await worker.setParameters({ tessedit_pageseg_mode: '6' });
+    return worker;
   }).catch((err) => { delete workers[lang]; throw err; });
   return workers[lang];
 }
@@ -121,7 +128,10 @@ async function readAll() {
       const canvas = await prepareImage(item.file);
       const urd = await ocr(MAIN_LANG, canvas);
       const eng = await ocr('eng', canvas);
-      const text = withEnglish(urd, eng).replace(/[‎‏‪-‮]/g, '').trim(); // drop invisible direction marks
+      const text = withEnglish(urd, eng)
+        .replace(/[‎‏‪-‮]/g, '') // drop invisible direction marks
+        .replace(/\{/g, '}') // the model may return the small-ج marker mirrored
+        .trim();
       item.segments = text ? [{ text, highlighted: false }] : [];
       setStatus(item, text ? 'Done – check the text below' : 'No text found');
       if (text) showResult(item);
