@@ -7,7 +7,7 @@ const MAX_SIDE = 2400; // px; plenty for text, keeps OCR fast
 // Kanz-al-Lulu (docs/tessdata/lsd.traineddata.gz). Bump the version when the file changes, so
 // browsers that cached the old model fetch the new one.
 const MAIN_LANG = 'lsd';
-const MODEL_OPTIONS = { lsd: { langPath: new URL('tessdata', location.href).href, cachePath: 'lsd-v2' } };
+const MODEL_OPTIONS = { lsd: { langPath: new URL('tessdata', location.href).href, cachePath: 'lsd-v3' } };
 const PDFJS = new URL('vendor/pdfjs/', location.href).href; // pdf.js 4.10.38, served from this site so its worker can start
 // Font families as Word knows them (the names inside the font files)
 const FONTS = {

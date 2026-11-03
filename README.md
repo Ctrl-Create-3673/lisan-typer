@@ -4,15 +4,16 @@
 
 Upload pictures or PDF files of Lisan-ud-Dawat text. The page reads them with OCR inside your browser and shows the text in the **Al-Kanz**, **Kanz-al-Lulu** and **Kanz-al-Yaqoot** fonts, line for line as in the original. Copy it for Al-Kanz or Kanz-al-Lulu, or export it to Word or PDF. Designed by Ctrl + Create.
 
-No API key, no server, no outside AI and no image uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) in the browser with **our own model**, `docs/tessdata/lsd.traineddata.gz` (1 MB). It is Tesseract's Urdu model fine-tuned in three rounds on about 21,000 lines rendered in Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu: synthetic lines plus real Lisan-ud-Dawat documents typed with the AL Fatemi keyboard (doubled-letter forms, ؛ for چھے, اْ). English words, which the model reads as digits, are re-read with Tesseract's English model. Small raised letters (Word superscript, e.g. خداتع, ابراهيمع) are found from their position and kept raised. The first reading downloads the models (then cached by the browser).
+No API key, no server, no outside AI and no image uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) in the browser with **our own model**, `docs/tessdata/lsd.traineddata.gz` (1 MB). It is Tesseract's Urdu model fine-tuned on about 25,000 lines rendered in Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu: synthetic lines plus real Lisan-ud-Dawat documents typed with the AL Fatemi keyboard (doubled-letter forms, ؛ for چھے, اْ), plus 4,000 lines with small raised honorifics (ع، عم، تع، رض، طع …). English words, which the model reads as digits, are re-read with Tesseract's English model. Small raised letters (Word superscript, e.g. خداتع, ابراهيمع) are found from their position and kept raised. The first reading downloads the models (then cached by the browser).
 
 Exact words read correctly (stock Urdu model in brackets):
 
 | Test | Our model |
 |---|---|
-| Original screenshot, with English pass | 94% (58–62%) |
-| Held-out document never trained on, Al-Kanz | 91% (28%) |
+| Original screenshot, with English pass (round 3) | 94% (58–62%) |
+| Held-out document never trained on, Al-Kanz | 92% (28%) |
 | Same document, Kanz-al-Yaqoot | 97% (60%) |
+| Test lines with raised honorifics read exactly | 6 of 12 (0 of 12 before round 4) |
 
 Signed-in users (Google account) can **save** texts and reopen or delete them later under **My saved texts**.
 
@@ -84,6 +85,10 @@ The config values are public by design; these rules are what keep every user's t
 - The keyboard PDF shows ر on the C key; this app types ؤ with C, as on the standard Arabic layout, because nothing else on the layout types ؤ.
 - ﴿ ﴾ are not on the layout; insert them as symbols.
 - In Al-Kanz, ں straight after و (as in چھوں) shows a small extra mark, and ڈ shows a plain mark instead of a small ط.
+
+## Training the reader
+
+The training scripts live outside this repo (`~/lsd-ocr-training`, `run_all.sh`): they render practice lines from word lists and the AL Fatemi-typed documents, fine-tune `tessdata_best/urd` with `lstmtraining`, and test on a document kept out of training.
 
 ## Fonts
 
