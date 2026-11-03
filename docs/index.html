@@ -3,45 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lisan Typer</title>
-<meta name="description" content="Upload a picture of Lisan-ud-Dawat text and get it typed in the Kanz fonts, with the AL Fatemi keystrokes.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23b0211b'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='serif'>ل</text></svg>">
+<title>Lisan Ul Dawat Typer</title>
+<meta name="description" content="Upload a picture or PDF of Lisan-ud-Dawat text and get it typed in Al-Kanz and Kanz-al-Lulu.">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <style>
 @font-face { font-family: 'Al-Kanz'; src: url('fonts/Al-Kanz.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Kanz-al-Yaqoot'; src: url('fonts/Kanz-al-Yaqoot.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Kanz-al-Lulu'; src: url('fonts/Kanz-al-Lulu.ttf') format('truetype'); font-display: swap; }
 
 :root {
-  --bg: #f7f5f2; --surface: #ffffff; --fg: #1d1b19; --muted: #6d6862; --line: #e3ded8;
-  --accent: #b0211b; --accent-fg: #ffffff; --accent-soft: #f6e4e2; --highlight: #b0211b; --error: #a1261f;
+  --bg: #f6f7fb; --surface: #ffffff; --fg: #1b1d26; --muted: #646a7a; --line: #e1e4ee;
+  --accent: #2f6cc6; --accent-fg: #ffffff; --accent-soft: #e6eefb; --brand-2: #5b4394;
+  --highlight: #c0261c; --error: #b3261e;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151413; --surface: #1f1d1b; --fg: #f1ede8; --muted: #a29b93; --line: #34302c;
-    --accent: #e0574e; --accent-fg: #1a0705; --accent-soft: #3a201d; --highlight: #ff7a70; --error: #ff8a80;
+    --bg: #12141a; --surface: #1c1f27; --fg: #eef0f6; --muted: #a3a9b8; --line: #2e3340;
+    --accent: #6c9eea; --accent-fg: #0b1526; --accent-soft: #1d2a40; --brand-2: #a08ad8;
+    --highlight: #ff7a70; --error: #ff8a80;
     color-scheme: dark;
   }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
-header h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+main { max-width: 980px; margin: 0 auto; padding: 28px 16px 32px; }
 header .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { width: 44px; height: 44px; }
+.brand h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+.brand h1 span { color: var(--accent); }
 #account { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-#saved { margin-top: 40px; }
-#saved h2 { font-size: 18px; margin: 0 0 8px; }
-#saved-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
-#saved-list li { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
-#saved-list li:first-child { border-top: 0; }
-#saved-list .name { flex: 1; min-width: 140px; font-weight: 600; overflow-wrap: anywhere; }
-header p { margin: 6px 0 0; color: var(--muted); max-width: 640px; }
 
 .drop { margin-top: 24px; border: 2px dashed var(--line); border-radius: 14px; background: var(--surface); padding: 32px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
 .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
 .drop:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .drop strong { display: block; font-size: 17px; }
 .drop span { color: var(--muted); font-size: 14px; }
+
+.tips { margin: 14px 0 0; padding: 12px 16px 12px 34px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--brand-2); border-radius: 10px; font-size: 14px; color: var(--muted); }
+.tips b { color: var(--fg); }
+.tips li + li { margin-top: 2px; }
 
 .actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
 button { font: inherit; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 8px 14px; cursor: pointer; }
@@ -53,7 +56,7 @@ button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3p
 
 .card { margin-top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .card-head { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.card-head img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.card-head img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
 .card-head .name { flex: 1; min-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .status { font-size: 14px; color: var(--muted); }
 .status.error { color: var(--error); }
@@ -66,6 +69,7 @@ select { font: inherit; border-radius: 9px; border: 1px solid var(--line); backg
 .rendered.wrap .line { white-space: normal; overflow-wrap: anywhere; text-align-last: start; }
 .rendered .en { font-family: system-ui, sans-serif; font-size: .8em; }
 .rendered .hl { color: var(--highlight); }
+sup { font-size: .55em; line-height: 0; }
 .f-alkanz { font-family: 'Al-Kanz', serif; }
 .f-yaqoot { font-family: 'Kanz-al-Yaqoot', serif; }
 .f-lulu { font-family: 'Kanz-al-Lulu', serif; }
@@ -73,27 +77,54 @@ select { font: inherit; border-radius: 9px; border: 1px solid var(--line); backg
 details { border-top: 1px solid var(--line); padding: 10px 16px; }
 summary { cursor: pointer; font-weight: 600; font-size: 14px; }
 textarea { width: 100%; margin-top: 8px; font: 18px/1.8 'Kanz-al-Yaqoot', serif; direction: rtl; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--fg); padding: 10px; resize: vertical; }
-pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/1.6 ui-monospace, Menlo, Consolas, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--line); }
+.row .sep { flex: 1; }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; display: inline-block; vertical-align: -3px; margin-inline-end: 6px; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
-.legend { margin-top: 32px; color: var(--muted); font-size: 14px; }
-.legend code { font-size: 13px; }
+
+#saved { margin-top: 40px; }
+#saved h2 { font-size: 18px; margin: 0 0 8px; }
+#saved-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+#saved-list li { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+#saved-list li:first-child { border-top: 0; }
+#saved-list .name { flex: 1; min-width: 140px; font-weight: 600; overflow-wrap: anywhere; }
+
+footer { max-width: 980px; margin: 0 auto; padding: 20px 16px 36px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+footer a { display: inline-flex; background: #fff; border-radius: 8px; padding: 6px 10px; }
+footer img { height: 30px; width: auto; display: block; }
+
+#print-area { display: none; }
+@media print {
+  @page { margin: 18mm; }
+  body { background: #fff; }
+  body > :not(#print-area) { display: none !important; }
+  #print-area { display: block; direction: rtl; color: #000; font-size: 18pt; line-height: 2; text-align: justify; }
+  #print-area .line { white-space: pre-wrap; }
+}
 </style>
 </head>
 <body>
 <main>
   <header>
-    <div class="top"><h1>Lisan Typer</h1><div id="account"></div></div>
-    <p>Upload pictures of Lisan-ud-Dawat text. Your browser reads them (nothing is uploaded) and types the text in the Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu fonts, with the keys to press on the AL Fatemi keyboard. The first reading downloads the reader, so it takes a little longer.</p>
+    <div class="top">
+      <div class="brand"><img src="img/icon-96.png" alt="" width="44" height="44"><h1>Lisan Ul Dawat <span>Typer</span></h1></div>
+      <div id="account"></div>
+    </div>
   </header>
 
-  <div class="drop" id="drop" role="button" tabindex="0" aria-label="Add images">
-    <strong>Drop images here, paste, or click to choose</strong>
-    <span>JPEG, PNG, WebP or GIF · several at once is fine</span>
+  <div class="drop" id="drop" role="button" tabindex="0" aria-label="Add images or PDF files">
+    <strong>Drop images or PDF files here, paste, or click to choose</strong>
+    <span>JPEG, PNG, WebP or PDF · several at once is fine</span>
   </div>
-  <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+  <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple hidden>
+
+  <ul class="tips">
+    <li><b>Clear, sharp text:</b> the image must not be blurred. Screenshots work best.</li>
+    <li><b>Readable and straight:</b> good light, no shadows, text not tilted or cut off.</li>
+    <li><b>Only the text:</b> crop away pictures, borders and anything that isn't text.</li>
+    <li><b>Best fonts:</b> Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu. Always check the result before copying.</li>
+  </ul>
 
   <div class="actions">
     <button class="primary" id="go" disabled>Read the text</button>
@@ -106,10 +137,14 @@ pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; font: 14px/
     <h2>My saved texts</h2>
     <ul id="saved-list"></ul>
   </section>
-
-  <p class="legend">Keystrokes: type them on an English keyboard with the AL Fatemi layout switched on. A capital letter or symbol means hold <b>Shift</b>. Doubled keys such as <code>ee</code> (پ), <code>pp</code> (چ) and <code>ss</code> (ے) are pressed twice; <code>[EN:word]</code> means switch to English for that word.</p>
 </main>
+<footer>
+  <span>Designed by</span>
+  <a href="https://github.com/Ctrl-Create-3673" rel="noopener"><img src="img/ctrl-create-logo.png" alt="Ctrl + Create" width="182" height="30"></a>
+</footer>
+<div id="print-area" lang="ar"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.0.2/build/index.umd.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

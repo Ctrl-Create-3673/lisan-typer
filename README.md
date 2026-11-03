@@ -1,10 +1,10 @@
-# Lisan Typer
+# Lisan Ul Dawat Typer
 
 **Live site:** https://ctrl-create-3673.github.io/lisan-typer/
 
-Upload pictures of Lisan-ud-Dawat text. The page reads them with OCR inside your browser and shows the text in the **Al-Kanz**, **Kanz-al-Yaqoot** and **Kanz-al-Lulu** fonts, together with the keys to press on the **AL Fatemi** Arabic keyboard layout.
+Upload pictures or PDF files of Lisan-ud-Dawat text. The page reads them with OCR inside your browser and shows the text in the **Al-Kanz**, **Kanz-al-Lulu** and **Kanz-al-Yaqoot** fonts, line for line as in the original. Copy it for Al-Kanz or Kanz-al-Lulu, or export it to Word or PDF. Designed by Ctrl + Create.
 
-No API key, no server, no outside AI and no image uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) in the browser with **our own model**, `docs/tessdata/lsd.traineddata.gz` (1 MB). It is Tesseract's Urdu model fine-tuned in three rounds on about 21,000 lines rendered in Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu: synthetic lines plus real Lisan-ud-Dawat documents typed with the AL Fatemi keyboard (doubled-letter forms, ؛ for چھے, اْ). A second English pass puts back English words. The first reading downloads the models (then cached by the browser).
+No API key, no server, no outside AI and no image uploads: reading uses [Tesseract.js](https://github.com/naptha/tesseract.js) in the browser with **our own model**, `docs/tessdata/lsd.traineddata.gz` (1 MB). It is Tesseract's Urdu model fine-tuned in three rounds on about 21,000 lines rendered in Al-Kanz, Kanz-al-Yaqoot and Kanz-al-Lulu: synthetic lines plus real Lisan-ud-Dawat documents typed with the AL Fatemi keyboard (doubled-letter forms, ؛ for چھے, اْ). English words, which the model reads as digits, are re-read with Tesseract's English model. Small raised letters (Word superscript, e.g. خداتع, ابراهيمع) are found from their position and kept raised. The first reading downloads the models (then cached by the browser).
 
 Exact words read correctly (stock Urdu model in brackets):
 
@@ -16,10 +16,12 @@ Exact words read correctly (stock Urdu model in brackets):
 
 Signed-in users (Google account) can **save** texts and reopen or delete them later under **My saved texts**.
 
-- **Al-Kanz view:** the exact characters the AL Fatemi keyboard types. Al-Kanz draws doubled letters as Lisan-ud-Dawat letters (`ضض` → ٹ, `ثث` → پ, `حح` → چ, `سس` → ے, `كك` → گ, `طط` → ں), and `ر` + `ٌ` as ڑ.
-- **Yaqoot / Lulu views:** the same text in standard Unicode (ٹ ڑ پ چ ے ں ھ).
-- **Keystrokes:** type them on an English keyboard with the AL Fatemi layout switched on. A capital letter or symbol means hold Shift. `[EN:word]` means switch to English for that word.
-- **Fix the text:** OCR often confuses Lisan-ud-Dawat letters (چ/ج, گ/ك, ھ/ه) and cannot read English words. Correct them here; the view and keystrokes update as you type.
+- **Al-Kanz:** the exact characters the AL Fatemi keyboard types. Al-Kanz draws doubled letters as Lisan-ud-Dawat letters (`ضض` → ٹ, `ثث` → پ, `حح` → چ, `سس` → ے, `كك` → گ, `طط` → ں), `ر` + `ٌ` as ڑ and `؛` as چھے.
+- **Kanz-al-Lulu / Kanz-al-Yaqoot:** the same text in standard Unicode (ٹ ڑ پ چ ے ں ھ).
+- **Copy:** rich text, so Word keeps the font and raised letters; plain text elsewhere.
+- **Export to Word:** a .docx in the chosen font, right-to-left, raised letters as superscript. **Export to PDF:** the browser's print dialog (choose *Save as PDF*), which keeps the real font.
+- **PDF files:** every page is shown and read as its own card (pdf.js 4.10.38 in `docs/vendor/pdfjs`).
+- **Fix the text:** correct any word; small raised letters go between `^` marks, e.g. `خدا^تع^`.
 
 ## Run it locally
 
@@ -67,11 +69,13 @@ The config values are public by design; these rules are what keep every user's t
 | File | What it does |
 |---|---|
 | `docs/index.html` | The page |
-| `docs/app.js` | Upload, OCR (our model + English pass), results, copy and save buttons, saved list |
+| `docs/app.js` | Upload (images, PDF), OCR (our model, English re-read, raised letters), copy, Word/PDF export, saved list |
+| `docs/img/` | Ctrl + Create logo and icons |
+| `docs/vendor/pdfjs/` | pdf.js, served from the site so its worker can start |
 | `docs/tessdata/lsd.traineddata.gz` | Our Kanz-font reading model (Tesseract LSTM, integer, gzipped) |
 | `docs/cloud.js` | Google sign-in and saved texts (Firebase Auth + Firestore) |
 | `docs/firebase-config.js` | Your Firebase web app config (`null` = sign-in off) |
-| `docs/keymap.js` | AL Fatemi key map and the Unicode → keyboard text → keystrokes conversion |
+| `docs/keymap.js` | AL Fatemi key map: Unicode → the keyboard text Al-Kanz expects |
 | `test.js` | `npm test`: checks the key map against a passage verified in Al-Kanz |
 
 ## Known limits
